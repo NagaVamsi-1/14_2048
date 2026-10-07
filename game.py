@@ -25,12 +25,27 @@ class Game:
                  "w": self.board.move_up, "s": self.board.move_down}
         if key not in moves:
             return False
+
+        old_grid = [row[:] for row in self.board.grid]
+        old_score = self.board.score
         changed = moves[key]()
         if changed:
+            # Keep only the previous state of the latest successful move.
+            self.history = [(old_grid, old_score)]
             # A new tile is created only after a successful move.
             self.board.add_random_tile()
             self._update_game_state()
         return changed
+
+    def undo(self):
+        if not self.history:
+            return False
+
+        old_grid, old_score = self.history.pop()
+        self.board.grid = [row[:] for row in old_grid]
+        self.board.score = old_score
+        self._update_game_state()
+        return True
 
     def run(self):
         print("2048 — W/A/S/D to move, U to undo, Q to quit.")
@@ -47,7 +62,10 @@ class Game:
             if key == "q":
                 return
             if key == "u":
-                print("Undo is not implemented yet.")
+                if self.undo():
+                    print("Move undone.")
+                else:
+                    print("Nothing to undo.")
                 continue
             if key not in "wasd":
                 print("Use W/A/S/D.")
