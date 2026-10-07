@@ -8,6 +8,7 @@ class Game:
         self.history = []
         self.won = False
         self.game_over = False
+        self.last_action = None
 
     def _update_game_state(self):
         self.won = any(2048 in row for row in self.board.grid)
@@ -28,10 +29,19 @@ class Game:
 
         old_grid = [row[:] for row in self.board.grid]
         old_score = self.board.score
+        old_tiles = sum(value != 0 for row in old_grid for value in row)
         changed = moves[key]()
         if changed:
+            # Determine feedback from the move result before creating the new tile.
+            new_tiles = sum(value != 0 for row in self.board.grid for value in row)
+            merged = new_tiles < old_tiles
+
             # Keep only the previous state of the latest successful move.
             self.history = [(old_grid, old_score)]
+            self.last_action = f"Moved {key.upper()}"
+            if merged:
+                self.last_action += " — merged"
+
             # A new tile is created only after a successful move.
             self.board.add_random_tile()
             self._update_game_state()
@@ -72,3 +82,4 @@ class Game:
                 continue
             if self.move(key):
                 self.best_score = max(self.best_score, self.board.score)
+                print(self.last_action + ".")
