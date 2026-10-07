@@ -20,11 +20,14 @@ class Board:
     def slide_line(line):
         values = [x for x in line if x]
         result = []
+        merged = False
         for value in values:
-            if result and result[-1] == value:
-                result[-1] *= 2  # intentional double-merge bug
+            if result and result[-1] == value and not merged:
+                result[-1] *= 2
+                merged = True
             else:
                 result.append(value)
+                merged = False
         return result + [0] * (SIZE - len(result))
 
     def move_left(self):
