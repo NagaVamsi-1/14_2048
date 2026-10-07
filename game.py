@@ -6,6 +6,12 @@ class Game:
         self.board = Board()
         self.best_score = 0
         self.history = []
+        self.won = False
+        self.game_over = False
+
+    def _update_game_state(self):
+        self.won = any(2048 in row for row in self.board.grid)
+        self.game_over = self.won or not self.board.can_move()
 
     def display(self):
         print("\n" + "+------+------+------+------+")
@@ -21,17 +27,20 @@ class Game:
             return False
         changed = moves[key]()
         if changed:
+            # A new tile is created only after a successful move.
             self.board.add_random_tile()
+            self._update_game_state()
         return changed
 
     def run(self):
         print("2048 — W/A/S/D to move, U to undo, Q to quit.")
         while True:
             self.display()
-            if any(2048 in row for row in self.board.grid):
+            self._update_game_state()
+            if self.won:
                 print("You reached 2048!")
                 return
-            if not self.board.can_move():
+            if self.game_over:
                 print("No legal moves remain.")
                 return
             key = input("> ").strip().lower()
